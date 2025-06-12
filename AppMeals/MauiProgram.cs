@@ -1,4 +1,5 @@
 ﻿using AppMeals.Services;
+using AppMeals.Validations;
 using Microsoft.Extensions.Logging;
 
 namespace AppMeals
@@ -20,6 +21,7 @@ namespace AppMeals
     		builder.Logging.AddDebug();
 #endif
             builder.Services.AddSingleton<ApiService>();
+            builder.Services.AddSingleton<IValidator, Validator>();
             builder.Services.AddHttpClient();
             return builder.Build();
         }

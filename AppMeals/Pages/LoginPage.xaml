@@ -30,7 +30,7 @@
 
         </Border>
         <Button Grid.Row="3"
-                Text="Entrar"
+                Text="Login"
                 FontSize="Medium"
                 x:Name="BtnSignIn"
                 BackgroundColor="#a90409"
