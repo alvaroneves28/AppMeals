@@ -17,7 +17,15 @@ namespace AppMeals
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new NavigationPage(new RegisterPage(_apiService, _validator)));
+            var accessToken = Preferences.Get("accesstoken", string.Empty);
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return new Window(new NavigationPage(new LoginPage(_apiService, _validator)));
+            }
+
+            return new Window(new AppShell(_apiService, _validator));
         }
+
     }
 }

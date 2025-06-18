@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -183,6 +184,103 @@ namespace AppMeals.Services
             {
                 _logger.LogError($"Unexpected error when sending POST to {url}: {ex.Message}");
                 throw;
+            }
+        }
+
+        public async Task<(List<Category>? Categories, string? ErrorMessage)> GetCategories()
+        {
+            return await GetAsync<List<Category>>("api/Categories");
+        }
+
+        public async Task<(List<Product>? Products, string? ErrorMessage)> GetProducts(string productType, string categoryId)
+        {
+            string endpoint;
+
+            if (string.IsNullOrWhiteSpace(categoryId))
+            {
+                endpoint = $"api/Products?productType={productType}";
+            }
+            else
+            {
+                endpoint = $"api/Products?productType={productType}&categoryId={categoryId}";
+            }
+
+            var (products, errorMessage) = await GetAsync<List<Product>>(endpoint);
+
+            if (products != null)
+            {
+                var baseUrl = "https://q82b0738-44381.uks1.devtunnels.ms";
+
+                foreach (var product in products)
+                {
+                    if (!string.IsNullOrEmpty(product.ImageUrl) && product.ImageUrl.StartsWith("/"))
+                    {
+                        product.ImageUrl = $"{baseUrl.TrimEnd('/')}/{product.ImageUrl.TrimStart('/')}";
+                    }
+
+                    _logger.LogInformation($"Nome: {product.Name}, Imagem: {product.ImageUrl}");
+                }
+            }
+
+            return (products, errorMessage);
+        }
+
+
+        private async Task<(T? Data, string? ErrorMessage)>GetAsync<T>(string endpoint)
+        {
+            try
+            {
+                AddAuthorizationHeader();
+                var response = await _httpClient.GetAsync(AppConfig.BaseUrl + endpoint);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var data = JsonSerializer.Deserialize<T>(responseString, _serializerOptions);
+                    return (data ?? Activator.CreateInstance<T>(), null);
+                }
+                else
+                {
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        string errorMessage = "Unauthorized";
+                        _logger.LogWarning(errorMessage);
+                        return (default, errorMessage);
+                    }
+
+                    string generalErrorMessage = $"Erro na requisição: {response.ReasonPhrase}";
+                    _logger.LogError(generalErrorMessage);
+                    return (default, generalErrorMessage);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                string errorMessage = $"HTTP request error: {ex.Message}";
+                _logger.LogError(ex, errorMessage);
+                return (default, errorMessage);
+            }
+            catch (JsonException ex)
+            {
+                string errorMessage = $"JSON deserialization error: {ex.Message}";
+                _logger.LogError(ex, errorMessage);
+                return (default, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Unexpected error: {ex.Message}";
+                _logger.LogError(ex, errorMessage);
+                return (default, errorMessage);
+            }
+
+        }
+
+        private void AddAuthorizationHeader()
+        {
+            var token = Preferences.Get("accesstoken", string.Empty);
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
         }
 

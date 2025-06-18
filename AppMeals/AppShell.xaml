@@ -5,31 +5,16 @@
     xmlns:local="clr-namespace:AppMeals"
     xmlns:pages="clr-namespace:AppMeals.Pages"
     Shell.FlyoutBehavior="Disabled"
-    Shell.TabBarBackgroundColor="#a90409"
-    Shell.TabBarTitleColor="White"
-    Shell.TabBarUnselectedColor="White">
+    Shell.NavBarHasShadow="True"
+    Shell.BackgroundColor="#2196F3"
+    Shell.ForegroundColor="White"
+    Shell.TitleColor="White"
+    Shell.UnselectedColor="White"
+    Shell.DisabledColor="#BFBFBF"
+    Shell.TabBarTitleColor="AntiqueWhite"
+    Shell.TabBarBackgroundColor="#2196F3"
+    Shell.TabBarForegroundColor="White">
 
-    <TabBar>
-        <Tab Title="Home" Icon="home">
-            <ShellContent
-                Route="home"
-                ContentTemplate="{DataTemplate pages:HomePage}" />
-        </Tab>
-        <Tab Title="ShoppingCart" Icon="cart">
-            <ShellContent
-                Route="shoppingcart"
-                ContentTemplate="{DataTemplate pages:ShoppingCartPage}" />
-        </Tab>
-        <Tab Title="Favorites" Icon="heart">
-            <ShellContent
-                Route="favorites"
-                ContentTemplate="{DataTemplate pages:FavoritesPage}" />
-        </Tab>
-        <Tab Title="Profile" Icon="profile">
-            <ShellContent
-                Route="profile"
-                ContentTemplate="{DataTemplate pages:ProfilePage}" />
-        </Tab>
-    </TabBar>
+   
 
 </Shell>
