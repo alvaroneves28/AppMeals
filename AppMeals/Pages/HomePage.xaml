@@ -8,7 +8,7 @@
           RowSpacing="18"
           Margin="15">
 
-        <!-- Boas-vindas -->
+        
         <VerticalStackLayout Grid.Row="0" Spacing="3">
             <Label x:Name="LblUserName" FontSize="Large" />
             <Label Text="Are you hungry? How about a meal?"
@@ -17,7 +17,7 @@
                    FontSize="Subtitle" />
         </VerticalStackLayout>
 
-        <!-- Categorias -->
+       
         <VerticalStackLayout Grid.Row="1">
             <Label Text="Categories"
                    TextColor="#a90409"
@@ -25,7 +25,7 @@
                    FontSize="Medium" />
         </VerticalStackLayout>
 
-        <CollectionView Grid.Row="2" x:Name="CvCategories" SelectionMode="Single">
+        <CollectionView Grid.Row="2" x:Name="CvCategories" SelectionMode="Single" SelectionChanged="CvCategories_SelectionChanged">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Horizontal" ItemSpacing="20" />
             </CollectionView.ItemsLayout>
@@ -43,7 +43,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Mais vendidos -->
+       
         <Label Grid.Row="3"
                Text="Most Sold"
                FontSize="Medium"
@@ -80,7 +80,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Mais populares -->
+        
         <Label Grid.Row="5"
                Text="Most Popular"
                FontSize="Medium"

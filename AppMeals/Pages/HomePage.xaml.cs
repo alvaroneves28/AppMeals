@@ -118,4 +118,21 @@ public partial class HomePage : ContentPage
         await Navigation.PushAsync(new LoginPage(_apiService, _validator));
     }
 
+    private async void CvCategories_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection == null || e.CurrentSelection.Count == 0)
+            return;
+
+        var currentSelection = e.CurrentSelection.FirstOrDefault() as Category;
+        if (currentSelection is null || string.IsNullOrWhiteSpace(currentSelection.Name))
+            return;
+
+        ((CollectionView)sender).SelectedItem = null;
+
+        await Navigation.PushAsync(new ProductListPage(currentSelection.Id,
+                                                        currentSelection.Name,
+                                                        _apiService,
+                                                        _validator));
+    }
+
 }
