@@ -284,5 +284,10 @@ namespace AppMeals.Services
             }
         }
 
+        public async Task<(Product? productDetail, string errorMessage)> GetProductDetail(int productId)
+        {
+            string endpoint = $"api/Products/{productId}";
+            return await GetAsync<Product>(endpoint);
+        }
     }
 }
