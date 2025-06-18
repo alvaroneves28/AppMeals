@@ -78,16 +78,72 @@ public partial class ProductDetailsPage : ContentPage
 
     private void BtnRemove_Clicked(object sender, EventArgs e)
     {
+        if (int.TryParse(LblQuantity.Text, out int quantity) &&
+            decimal.TryParse(LblProductPrice.Text, out decimal unitPrice))
+        {
+        
+            quantity = Math.Max(1, quantity - 1);
+            LblQuantity.Text = quantity.ToString();
 
+            
+            var totalPrice = quantity * unitPrice;
+            LblTotalPrice.Text = totalPrice.ToString();
+        }
+        else
+        {
+            DisplayAlert("Erro", "Invalid Value", "OK");
+        }
     }
 
     private void BtnIncrease_Clicked(object sender, EventArgs e)
     {
+        if (int.TryParse(LblQuantity.Text, out int quantity) &&
+       decimal.TryParse(LblProductPrice.Text, out decimal unitPrice))
+        {
+            
+            quantity++;
+            LblQuantity.Text = quantity.ToString();
 
+            
+            var totalPrice = quantity * unitPrice;
+            LblTotalPrice.Text = totalPrice.ToString(); 
+        }
+        else
+        {
+            
+            DisplayAlert("Erro", "Invalid Value", "OK");
+        }
     }
 
-    private void BtnShoppingCartInclude_Clicked(object sender, EventArgs e)
+    private async void BtnShoppingCartInclude_Clicked(object sender, EventArgs e)
     {
+        try
+        {
+            var shoppingCart = new ShoppingCart()
+            {
+                Quantity = Convert.ToInt32(LblQuantity.Text),
+                Price = Convert.ToDecimal(LblProductPrice.Text),
+                TotalValue = Convert.ToDecimal(LblTotalPrice.Text),
+                ProductId = _productId,
+                ClientId = Preferences.Get("userid", 0)
+            };
 
+            var response = await _apiService.AddItemToShoppingCart(shoppingCart);
+
+            if (response.Data)
+            {
+                await DisplayAlert("Success", "Item added to the cart!", "OK");
+                await Navigation.PopAsync();
+            }
+            else
+            {
+                await DisplayAlert("Error", $"Failed to add item: {response.ErrorMessage}", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+        }
     }
+
 }

@@ -124,10 +124,11 @@ namespace AppMeals.Services
                 }
 
                 _logger.LogInformation("Login response JSON: " + jsonResult);
-
+                
                 Token? result;
                 try
                 {
+                    
                     result = JsonSerializer.Deserialize<Token>(jsonResult, _serializerOptions);
                 }
                 catch (JsonException jsonEx)
@@ -147,14 +148,17 @@ namespace AppMeals.Services
                         ErrorMessage = "Invalid token received from server."
                     };
                 }
+                
 
                 // Save preferences
                 Preferences.Set("accesstoken", result.AccessToken);
                 Preferences.Set("userid", (int)result.UserId!);
                 Preferences.Set("username", result.UserName);
-
+                
                 _logger.LogInformation("Login successful.");
                 return new ApiResponse<bool> { Success = true, Data = true };
+
+
             }
             catch (Exception ex)
             {
@@ -289,5 +293,33 @@ namespace AppMeals.Services
             string endpoint = $"api/Products/{productId}";
             return await GetAsync<Product>(endpoint);
         }
+
+        public async Task<ApiResponse<bool>> AddItemToShoppingCart(ShoppingCart shoppingCart)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(shoppingCart, _serializerOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await PostRequest("api/BasketItems", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Error sending HTTP request: {response.StatusCode}");
+                    return new ApiResponse<bool>
+                    {
+                        ErrorMessage = $"Error sending HTTP request: {response.StatusCode}"
+                    };
+                }
+
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error adding item to cart: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
+            }
+        }
+
     }
 }

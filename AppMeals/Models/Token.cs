@@ -9,13 +9,13 @@ namespace AppMeals.Models
 {
     internal class Token
     {
-        
+        [JsonPropertyName("accesstoken")]
         public string? AccessToken { get; set; }
-        
+        [JsonPropertyName("tokentype")]
         public string? TokenType { get; set; }
-        
+        [JsonPropertyName("userid")]
         public int? UserId { get; set; }
-        
+        [JsonPropertyName("username")]
         public string? UserName { get; set; }
     }
 }
