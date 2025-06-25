@@ -19,7 +19,7 @@ namespace AppMeals
         private void ConfigureShell()
         {
             var homePage = new HomePage(_apiService, _validator);
-            var shoppingCartPage = new ShoppingCartPage();
+            var shoppingCartPage = new ShoppingCartPage(_apiService, _validator);
             var favoritesPage = new FavoritesPage();
             var profilePage = new ProfilePage();
 

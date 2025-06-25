@@ -119,16 +119,16 @@ public partial class ProductDetailsPage : ContentPage
     {
         try
         {
-            var shoppingCart = new ShoppingCart()
+            var shoppingCartItem = new ShoppingCartItem()
             {
                 Quantity = Convert.ToInt32(LblQuantity.Text),
-                Price = Convert.ToDecimal(LblProductPrice.Text),
-                TotalValue = Convert.ToDecimal(LblTotalPrice.Text),
+                UnitPrice = Convert.ToDecimal(LblProductPrice.Text),
+                TotalAmount = Convert.ToDecimal(LblTotalPrice.Text),
                 ProductId = _productId,
-                ClientId = Preferences.Get("userid", 0)
+                UserId = Preferences.Get("userid", 0)
             };
 
-            var response = await _apiService.AddItemToShoppingCart(shoppingCart);
+            var response = await _apiService.AddItemToShoppingCart(shoppingCartItem);
 
             if (response.Data)
             {

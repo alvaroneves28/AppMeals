@@ -294,11 +294,11 @@ namespace AppMeals.Services
             return await GetAsync<Product>(endpoint);
         }
 
-        public async Task<ApiResponse<bool>> AddItemToShoppingCart(ShoppingCart shoppingCart)
+        public async Task<ApiResponse<bool>> AddItemToShoppingCart(ShoppingCartItem shoppingCartItem)
         {
             try
             {
-                var json = JsonSerializer.Serialize(shoppingCart, _serializerOptions);
+                var json = JsonSerializer.Serialize(shoppingCartItem, _serializerOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await PostRequest("api/BasketItems", content);
@@ -319,6 +319,12 @@ namespace AppMeals.Services
                 _logger.LogError($"Error adding item to cart: {ex.Message}");
                 return new ApiResponse<bool> { ErrorMessage = ex.Message };
             }
+        }
+
+        public async Task<(List<ShoppingCartItem>? ShoppingCartItems, string? ErrorMessage)> GetShoppingCartItems(int userId)
+        {
+            var endpoint = $"api/BasketItems/{userId}";
+            return await GetAsync<List<ShoppingCartItem>>(endpoint);
         }
 
     }
