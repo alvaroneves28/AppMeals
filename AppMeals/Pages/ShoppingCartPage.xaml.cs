@@ -2,6 +2,7 @@ using AppMeals.Models;
 using AppMeals.Services;
 using AppMeals.Validations;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace AppMeals.Pages;
 
@@ -79,24 +80,34 @@ public partial class ShoppingCartPage : ContentPage
         await Navigation.PushAsync(new LoginPage(_apiService, _validator));
     }
 
-    private void BtnDecrease_Clicked(object sender, EventArgs e)
+    private async void BtnDecrease_Clicked(object sender, EventArgs e)
     {
-
+        if (sender is Button button && button.BindingContext is ShoppingCartItem shoppingCartItem)
+        {
+            if (shoppingCartItem.Quantity == 1) return;
+            else
+            {
+                shoppingCartItem.Quantity--;
+                UpdateTotalPrice();
+                await _apiService.UpdateShoppingCartItemQuantity(shoppingCartItem.ProductId, "decreased");
+            }
+                
+        }
     }
 
-    private void BtnIncrease_Clicked(object sender, EventArgs e)
+    private async void BtnIncrease_Clicked(object sender, EventArgs e)
     {
-
-    }
-
-    private void BtnDelete_Clicked(object sender, EventArgs e)
-    {
-
+        if (sender is Button button && button.BindingContext is ShoppingCartItem shoppingCartItem)
+        {
+            shoppingCartItem.Quantity++;
+            UpdateTotalPrice();
+            await _apiService.UpdateShoppingCartItemQuantity(shoppingCartItem.ProductId, "Increased");
+        }
     }
 
     private void BtnEditAdress_Clicked(object sender, EventArgs e)
     {
-
+        Navigation.PushAsync(new AddressPage());
     }
 
     private void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
@@ -108,5 +119,35 @@ public partial class ShoppingCartPage : ContentPage
     {
         base.OnAppearing();
         await GetShoppingCartItems();
+
+        bool savedAddress = Preferences.ContainsKey("address");
+
+        if (savedAddress)
+        {
+            string name = Preferences.Get("name", string.Empty);
+            string address = Preferences.Get("address", string.Empty);
+            string telephone = Preferences.Get("telephone", string.Empty);
+
+            LblAddress.Text = $"{name}\n{address}\n{telephone}";
+        }
+        else
+        {
+            LblAddress.Text = "Introduce your address";
+        }
+    }
+
+    private async void BtnDelete_Clicked(object sender, EventArgs e)
+    {
+        if (sender is ImageButton button && button.BindingContext is ShoppingCartItem shoppingCartItem)
+        {
+            bool response = await DisplayAlert("Confirmation", "Are you sure you want to delete this sitem from the shopping cart ?", "yes", "no");
+            if (response)
+            {
+                ShoppingCartItems.Remove(shoppingCartItem);
+                UpdateTotalPrice();
+                await _apiService.UpdateShoppingCartItemQuantity(shoppingCartItem.ProductId, "delete");
+            }
+
+        }
     }
 }
