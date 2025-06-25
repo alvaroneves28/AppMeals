@@ -2,7 +2,7 @@ using AppMeals.Models;
 using AppMeals.Services;
 using AppMeals.Validations;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace AppMeals.Pages;
 
@@ -12,6 +12,7 @@ public partial class ShoppingCartPage : ContentPage
     private readonly IValidator _validator;
     private bool _loginPageDisplayed = false;
     private bool _isNavigatingToEmptyCartPage = false;
+
 
     private readonly ObservableCollection<ShoppingCartItem> ShoppingCartItems = new();
 
@@ -27,7 +28,7 @@ public partial class ShoppingCartPage : ContentPage
         try
         {
             var userId = Preferences.Get("userid", 0);
-            
+
             var (shoppingCartItems, errorMessage) = await _apiService.GetShoppingCartItems(userId);
 
             if (errorMessage == "Unauthorized" && !_loginPageDisplayed)
@@ -66,7 +67,7 @@ public partial class ShoppingCartPage : ContentPage
         try
         {
             var totalPrice = ShoppingCartItems.Sum(item => item.UnitPrice * item.Quantity);
-            LblTotalPrice.Text = totalPrice.ToString("F2"); 
+            LblTotalPrice.Text = totalPrice.ToString("F2");
         }
         catch (Exception ex)
         {
@@ -91,7 +92,7 @@ public partial class ShoppingCartPage : ContentPage
                 UpdateTotalPrice();
                 await _apiService.UpdateShoppingCartItemQuantity(shoppingCartItem.ProductId, "decreased");
             }
-                
+
         }
     }
 
@@ -110,30 +111,95 @@ public partial class ShoppingCartPage : ContentPage
         Navigation.PushAsync(new AddressPage());
     }
 
-    private void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
-    {
 
+    private async void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
+    {
+        if (ShoppingCartItems == null || !ShoppingCartItems.Any())
+        {
+            await DisplayAlert("Information", "Your shopping cart is empty or already confirmed", "OK");
+            return;
+        }
+        var totalText = LblTotalPrice.Text.Replace("R$", "").Trim();
+        var order = new Order()
+        {
+            Address = LblAddress.Text,
+            UserId = Preferences.Get("userid", 0),
+            TotalAmount = Convert.ToDecimal(totalText, CultureInfo.InvariantCulture)
+        };
+
+        var response = await _apiService.ConfirmOrder(order);
+
+        if (response.Success)
+        {
+            if (response.ErrorMessage == "Unauthorized")
+            {
+
+                await DisplayLoginPage();
+                return;
+            }
+            await DisplayAlert("Opa !!!", $"Something went wrong: {response.ErrorMessage}", "Cancel");
+            return;
+        }
+
+        ShoppingCartItems.Clear();
+        LblAddress.Text = "Introduce you Address";
+        LblTotalPrice.Text = "0.00";
+
+        await Navigation.PushAsync(new OrderConfirmPage());
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await GetShoppingCartItems();
+        if (IsNavigatingToEmptyCartPage()) return;
 
-        bool savedAddress = Preferences.ContainsKey("address");
+        bool hasItems = await GetShoppingCartItems();
 
-        if (savedAddress)
+        if (hasItems)
+        {
+            ShowAddress();
+        }
+        else
+        {
+            await NavigateToEmptyCart();
+        }
+        
+    }
+
+    private async Task NavigateToEmptyCart()
+    {
+        LblAddress.Text = string.Empty;
+        _isNavigatingToEmptyCartPage = true;
+        await Navigation.PushAsync(new EmptyCartPage());
+    }
+
+    private void ShowAddress()
+    {
+        bool enderecoSalvo = Preferences.ContainsKey("endereco");
+
+        if (enderecoSalvo)
         {
             string name = Preferences.Get("name", string.Empty);
             string address = Preferences.Get("address", string.Empty);
             string telephone = Preferences.Get("telephone", string.Empty);
 
-            LblAddress.Text = $"{name}\n{address}\n{telephone}";
+            // Formatar os dados conforme desejado na label
+            LblAddress.Text = $"{name}\n{address} \n{telephone}";
         }
         else
         {
-            LblAddress.Text = "Introduce your address";
+            LblAddress.Text = "ntroduce your address";
         }
+    }
+
+    private bool IsNavigatingToEmptyCartPage()
+    {
+        if (_isNavigatingToEmptyCartPage)
+        {
+            _isNavigatingToEmptyCartPage = false;
+            return true;
+        }
+        return false;
     }
 
     private async void BtnDelete_Clicked(object sender, EventArgs e)

@@ -1,13 +1,9 @@
 ﻿using AppMeals.Models;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Diagnostics;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace AppMeals.Services
 {
@@ -124,11 +120,11 @@ namespace AppMeals.Services
                 }
 
                 _logger.LogInformation("Login response JSON: " + jsonResult);
-                
+
                 Token? result;
                 try
                 {
-                    
+
                     result = JsonSerializer.Deserialize<Token>(jsonResult, _serializerOptions);
                 }
                 catch (JsonException jsonEx)
@@ -148,13 +144,13 @@ namespace AppMeals.Services
                         ErrorMessage = "Invalid token received from server."
                     };
                 }
-                
+
 
                 // Save preferences
                 Preferences.Set("accesstoken", result.AccessToken);
                 Preferences.Set("userid", (int)result.UserId!);
                 Preferences.Set("username", result.UserName);
-                
+
                 _logger.LogInformation("Login successful.");
                 return new ApiResponse<bool> { Success = true, Data = true };
 
@@ -182,12 +178,40 @@ namespace AppMeals.Services
             catch (HttpRequestException ex)
             {
                 _logger.LogError($"HTTP request error to {url}: {ex.Message}");
-                throw; 
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Unexpected error when sending POST to {url}: {ex.Message}");
                 throw;
+            }
+        }
+
+        public async Task<ApiResponse<bool>> ConfirmOrder(Order order)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(order, _serializerOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await PostRequest("api/Orders", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorMessage = response.StatusCode == HttpStatusCode.Unauthorized
+                        ? "Unauthorized"
+                        : $"Error: {response.StatusCode} - {responseContent}";
+
+                    _logger.LogError($"HTTP Error: {errorMessage}");
+                    return new ApiResponse<bool> { ErrorMessage = errorMessage };
+                }
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error confirming Request: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
             }
         }
 
@@ -230,7 +254,7 @@ namespace AppMeals.Services
         }
 
 
-        private async Task<(T? Data, string? ErrorMessage)>GetAsync<T>(string endpoint)
+        private async Task<(T? Data, string? ErrorMessage)> GetAsync<T>(string endpoint)
         {
             try
             {
@@ -345,20 +369,20 @@ namespace AppMeals.Services
                         _logger.LogWarning(errorMessage);
                         return (false, errorMessage);
                     }
-                    string generalErrorMessage = $"Erro na requisição: {response.ReasonPhrase}";
+                    string generalErrorMessage = $"Bad Request: {response.ReasonPhrase}";
                     _logger.LogError(generalErrorMessage);
                     return (false, generalErrorMessage);
                 }
             }
             catch (HttpRequestException ex)
             {
-                string errorMessage = $"Erro de requisição HTTP: {ex.Message}";
+                string errorMessage = $"Error Http request: {ex.Message}";
                 _logger.LogError(ex, errorMessage);
                 return (false, errorMessage);
             }
             catch (Exception ex)
             {
-                string errorMessage = $"Erro inesperado: {ex.Message}";
+                string errorMessage = $"Unexpected error: {ex.Message}";
                 _logger.LogError(ex, errorMessage);
                 return (false, errorMessage);
             }
