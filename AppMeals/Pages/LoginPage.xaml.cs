@@ -7,11 +7,13 @@ public partial class LoginPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
+    
     public LoginPage(ApiService apiService, IValidator validator)
     {
         InitializeComponent();
         _apiService = apiService;
         _validator = validator;
+        
     }
 
     private async void BtnSignIn_Clicked(object sender, EventArgs e)

@@ -11,6 +11,7 @@ public partial class HomePage : ContentPage
 	private readonly IValidator _validator;
 	private bool _loginPageDisplayed = false;
     private bool _isDataLoaded = false;
+    
 
 
     public HomePage(ApiService apiService, IValidator validator)
@@ -149,34 +150,34 @@ public partial class HomePage : ContentPage
                                                         _validator));
     }
 
-    private void CVMostSold_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void CVMostSold_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is CollectionView collectionView)
         {
-            NavigateToProductDetailsPage(collectionView, e);
+            await NavigateToProductDetailsPage(collectionView, e);
         }
     }
 
-    private void CVPopulars_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void CVPopulars_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is CollectionView collectionView)
         {
-            NavigateToProductDetailsPage(collectionView, e);
+            await NavigateToProductDetailsPage(collectionView, e);
         }
     }
 
-    private void NavigateToProductDetailsPage(CollectionView collectionView, SelectionChangedEventArgs e)
+    private async Task NavigateToProductDetailsPage(CollectionView collectionView, SelectionChangedEventArgs e)
     {
         var currentSelection = e.CurrentSelection.FirstOrDefault() as Product;
 
         if (currentSelection == null)
             return;
 
-        Navigation.PushAsync(new ProductDetailsPage(
+        await Navigation.PushAsync(new ProductDetailsPage(
                                  currentSelection.Id, currentSelection.Name!, _apiService, _validator
         ));
 
         collectionView.SelectedItem = null;
-
     }
+
 }

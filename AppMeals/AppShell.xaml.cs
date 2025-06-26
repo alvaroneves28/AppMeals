@@ -8,19 +8,21 @@ namespace AppMeals
     {
         private readonly ApiService _apiService;
         private readonly IValidator _validator;
+       
         public AppShell(ApiService apiService, IValidator validator)
         {
             InitializeComponent();
             _apiService = apiService;
             _validator = validator;
             ConfigureShell();
+           
         }
 
         private void ConfigureShell()
         {
             var homePage = new HomePage(_apiService, _validator);
             var shoppingCartPage = new ShoppingCartPage(_apiService, _validator);
-            var favoritesPage = new FavoritesPage();
+            var favoritesPage = new FavoritesPage(_apiService, _validator);
             var profilePage = new ProfilePage();
 
             Items.Add(new TabBar

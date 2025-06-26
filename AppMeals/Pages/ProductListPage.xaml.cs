@@ -11,7 +11,8 @@ public partial class ProductListPage : ContentPage
     private readonly IValidator _validator;
     private int _categoryId;
     private bool _loginPageDisplayed = false;
-    public ProductListPage(int categoryId, string categoryName , ApiService apiService, IValidator validator)
+
+    public ProductListPage(int categoryId, string categoryName, ApiService apiService, IValidator validator)
     {
         InitializeComponent();
         _apiService = apiService;

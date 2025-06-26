@@ -12,6 +12,7 @@ public partial class ShoppingCartPage : ContentPage
     private readonly IValidator _validator;
     private bool _loginPageDisplayed = false;
     private bool _isNavigatingToEmptyCartPage = false;
+   
 
 
     private readonly ObservableCollection<ShoppingCartItem> ShoppingCartItems = new();

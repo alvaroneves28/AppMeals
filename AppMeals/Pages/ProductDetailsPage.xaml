@@ -48,7 +48,7 @@
             <Label x:Name="LblQuantity"
                    Text="1"
                    FontSize="Large"
-                 VerticalTextAlignment="Center" />
+                   VerticalTextAlignment="Center" />
 
             <Button HeightRequest="50"
                     WidthRequest="50"
@@ -76,19 +76,12 @@
                    FontAttributes="Bold"
                    FontSize="20" />
 
-            <Label Grid.Column="1"
+            <Label x:Name="LblProductPrice"
+                   Grid.Column="1"
                    FontSize="Medium"
                    FontAttributes="Bold"
-                   VerticalOptions="Center">
-                <Label.FormattedText>
-                    <FormattedString>
-                        <FormattedString.Spans>
-                            <Span Text="R$" FontSize="Medium"  FontAttributes="Bold"/>
-                            <Span x:Name="LblProductPrice" FontSize="Medium"  FontAttributes="Bold"/>
-                        </FormattedString.Spans>
-                    </FormattedString>
-                </Label.FormattedText>
-            </Label>
+                   VerticalOptions="Center"
+                   HorizontalTextAlignment="End" />
 
         </Grid>
 
@@ -110,17 +103,12 @@
                        FontAttributes="Bold"
                      HorizontalOptions="Center" />
 
-                <Label VerticalOptions="Center"
-                       HorizontalOptions="Center">
-                    <Label.FormattedText>
-                        <FormattedString>
-                            <FormattedString.Spans>
-                                <Span Text="R$ " FontSize="Medium"  FontAttributes="Bold" />
-                                <Span x:Name="LblTotalPrice"  FontSize="Medium"  FontAttributes="Bold"/>
-                            </FormattedString.Spans>
-                        </FormattedString>
-                    </Label.FormattedText>
-                </Label>
+                <Label x:Name="LblTotalPrice"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       FontSize="Medium"
+                       FontAttributes="Bold" />
+
             </VerticalStackLayout>
 
             <Button Text="Add to Shopping Cart"

@@ -8,11 +8,13 @@ namespace AppMeals
     {
         private readonly ApiService _apiService;
         private readonly IValidator _validator;
-        public App(ApiService apiService, IValidator validator)
+        private readonly FavoritesService _favoritesService;
+        public App(ApiService apiService, IValidator validator, FavoritesService favoritesService)
         {
             InitializeComponent();
             _apiService = apiService;
             _validator = validator;
+            _favoritesService = favoritesService;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

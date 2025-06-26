@@ -8,11 +8,13 @@ public partial class RegisterPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
+    
     public RegisterPage(ApiService apiService, IValidator validator)
     {
         InitializeComponent();
         _apiService = apiService;
         _validator = validator;
+     
     }
 
     private async void btnSignup_Clicked(object sender, EventArgs e)

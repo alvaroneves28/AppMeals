@@ -12,19 +12,23 @@ public partial class ProductDetailsPage : ContentPage
     private readonly IValidator _validator;
     private int _productId;
     private bool _loginPageDisplayed = false;
-    public ProductDetailsPage(int productID, string productName, ApiService apiService, IValidator validator)
+    private FavoritesService _favoritesService = new FavoritesService();
+    public string? _imageUrl;
+
+    public ProductDetailsPage(int productID, string? productName, ApiService apiService, IValidator validator)
     {
         InitializeComponent();
-        _apiService = apiService;
-        _validator = validator;
+        _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
+        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _productId = productID;
         Title = productName ?? "Product details";
-
+        System.Diagnostics.Debug.WriteLine($"ProductDetailsPage created with ProductId={_productId}, Title={Title}");
     }
     protected override async void OnAppearing()
     {
         base.OnAppearing();
         await GetProductDetails(_productId);
+        UpdateFavoriteButton();
     }
 
     private async Task<Product?> GetProductDetails(int productId)
@@ -37,28 +41,22 @@ public partial class ProductDetailsPage : ContentPage
             return null;
         }
 
-        
         if (productDetail == null)
         {
-            
-            await DisplayAlert("Erro", errorMessage ?? "Erro in obtaining the product.", "OK");
+            await DisplayAlert("Erro", errorMessage ?? "Erro ao obter o produto.", "OK");
             return null;
         }
 
-        if (productDetail != null)
-        {
-            
-            ProductImage.Source = productDetail.ImageUrl;
-            LblProductName.Text = productDetail.Name;
-            LblProductPrice.Text = productDetail.Price.ToString();
-            LblProductDescription.Text = productDetail.Detail;
-            LblTotalPrice.Text = productDetail.Price.ToString();
-        }
-        else
-        {
-            await DisplayAlert("Erro", errorMessage ?? "Não foi possível obter os detalhes do produto.", "OK");
-            return null;
-        }
+        System.Diagnostics.Debug.WriteLine($"Product loaded: {productDetail.Name}, Price: {productDetail.Price}");
+
+        // Protege contra null nos campos
+        ProductImage.Source = string.IsNullOrEmpty(productDetail.ImageUrl) ? "placeholder.png" : productDetail.ImageUrl;
+        LblProductName.Text = productDetail.Name ?? "Sem nome";
+        LblProductPrice.Text = productDetail.Price.ToString("F2");
+        LblProductDescription.Text = productDetail.Detail ?? "Sem descrição";
+        LblTotalPrice.Text = productDetail.Price.ToString("F2");
+        _imageUrl = productDetail.ImageUrl;
+
         return productDetail;
     }
 
@@ -71,9 +69,46 @@ public partial class ProductDetailsPage : ContentPage
     
     }
 
-    private void FavoriteImageBtn_Clicked(object sender, EventArgs e)
+    private async void FavoriteImageBtn_Clicked(object sender, EventArgs e)
     {
+        try
+        {
+            var favoriteExists = await _favoritesService.ReadAsync(_productId);
+            if (favoriteExists is not null)
+            {
+                await _favoritesService.DeleteAsync(favoriteExists);
+            }
+            else
+            {
+                var produtoFavorito = new FavoriteProduct()
+                {
+                    ProductId = _productId,
+                    IsFavorite = true,
+                    Detail = LblProductDescription.Text,
+                    Name = LblProductName.Text,
+                    Price = Convert.ToDecimal(LblProductPrice.Text),
+                    ImageUrl = _imageUrl
+                };
 
+                await _favoritesService.CreateAsync(produtoFavorito);
+            }
+            UpdateFavoriteButton();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Erro", $"Ocorreu um erro: {ex.Message}", "OK");
+        }
+    }
+
+    private async void UpdateFavoriteButton()
+    {
+        var favoriteExists = await
+              _favoritesService.ReadAsync(_productId);
+
+        if (favoriteExists is not null)
+            FavoriteImageBtn.Source = "heartfill";
+        else
+            FavoriteImageBtn.Source = "heart";
     }
 
     private void BtnRemove_Clicked(object sender, EventArgs e)
