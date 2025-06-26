@@ -404,5 +404,37 @@ namespace AppMeals.Services
                 return new HttpResponseMessage(HttpStatusCode.BadRequest);
             }
         }
+
+        public async Task<(ProfileImage? ProfileImage, string? ErrorMessage)> GetUserProfileImage()
+        {
+            string endpoint = "api/users/UserProfileImage";
+            return await GetAsync<ProfileImage>(endpoint);
+        }
+
+        internal async Task<ApiResponse<bool>> UploadUserImage(byte[] imageArray)
+        {
+            try
+            {
+                var content = new MultipartFormDataContent();
+                content.Add(new ByteArrayContent(imageArray), "image", "image.jpg");
+                var response = await PostRequest("api/users/UploadUserFoto", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorMessage = response.StatusCode == HttpStatusCode.Unauthorized
+                      ? "Unauthorized"
+                      : $"Erro ao enviar requisição HTTP: {response.StatusCode}";
+
+                    _logger.LogError($"Erro ao enviar requisição HTTP: {response.StatusCode}");
+                    return new ApiResponse<bool> { ErrorMessage = errorMessage };
+                }
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Erro ao fazer upload da imagem do usuário: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
+            }
+        }
     }
 }

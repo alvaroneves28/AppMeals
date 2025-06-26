@@ -23,7 +23,7 @@ namespace AppMeals
             var homePage = new HomePage(_apiService, _validator);
             var shoppingCartPage = new ShoppingCartPage(_apiService, _validator);
             var favoritesPage = new FavoritesPage(_apiService, _validator);
-            var profilePage = new ProfilePage();
+            var profilePage = new ProfilePage(_apiService, _validator);
 
             Items.Add(new TabBar
             {
