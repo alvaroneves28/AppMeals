@@ -20,11 +20,16 @@ namespace AppMeals
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+            
+
             builder.Services.AddSingleton<ApiService>();
             builder.Services.AddSingleton<FavoritesService>();
             builder.Services.AddSingleton<IValidator, Validator>();
             builder.Services.AddHttpClient();
             return builder.Build();
         }
+
     }
+
+
 }

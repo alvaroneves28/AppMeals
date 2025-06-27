@@ -172,6 +172,7 @@ namespace AppMeals.Services
             var url = $"{_baseUrl.TrimEnd('/')}/{uri.TrimStart('/')}";
             try
             {
+                AddAuthorizationHeader();
                 var result = await _httpClient.PostAsync(url, content);
                 return result;
             }
@@ -411,21 +412,30 @@ namespace AppMeals.Services
             return await GetAsync<ProfileImage>(endpoint);
         }
 
-        internal async Task<ApiResponse<bool>> UploadUserImage(byte[] imageArray)
+        public async Task<ApiResponse<bool>> UploadUserImage(byte[] imageArray)
         {
             try
             {
                 var content = new MultipartFormDataContent();
-                content.Add(new ByteArrayContent(imageArray), "image", "image.jpg");
-                var response = await PostRequest("api/users/UploadUserFoto", content);
+
+                var streamContent = new StreamContent(new MemoryStream(imageArray));
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+
+                content.Add(streamContent, "Image", "image.jpg");
+
+                var response = await PostRequest("api/Users/UploadUserFoto", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     string errorMessage = response.StatusCode == HttpStatusCode.Unauthorized
-                      ? "Unauthorized"
-                      : $"Erro ao enviar requisição HTTP: {response.StatusCode}";
+                        ? "Unauthorized"
+                        : $"Erro ao enviar requisição HTTP: {(int)response.StatusCode} {response.ReasonPhrase}";
 
-                    _logger.LogError($"Erro ao enviar requisição HTTP: {response.StatusCode}");
+                    _logger.LogError($"Erro ao enviar requisição HTTP: {(int)response.StatusCode} {response.ReasonPhrase}");
+
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Conteúdo do erro: {errorContent}");
+
                     return new ApiResponse<bool> { ErrorMessage = errorMessage };
                 }
                 return new ApiResponse<bool> { Data = true };
@@ -435,6 +445,21 @@ namespace AppMeals.Services
                 _logger.LogError($"Erro ao fazer upload da imagem do usuário: {ex.Message}");
                 return new ApiResponse<bool> { ErrorMessage = ex.Message };
             }
+        }
+
+        public async Task<(List<OrderByUser>?, string? ErrorMessage)> GetOrdersByUser(int userId)
+        {
+
+            string endpoint = $"api/Orders/OrdersByuser/{userId}";
+
+            return await GetAsync<List<OrderByUser>>(endpoint);
+        }
+
+        public async Task<(List<OrderDetail>?, string? ErrorMessage)> GetOrderDetails(int orderId)
+        {
+            string endpoint = $"api/Orders/OrderDetails/{orderId}";
+
+            return await GetAsync<List<OrderDetail>>(endpoint);
         }
     }
 }
