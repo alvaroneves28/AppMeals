@@ -63,7 +63,7 @@ namespace AppMeals.Services
             }
         }
 
-        public async Task<ApiResponse<bool>> Login(string email, string password)
+        public async Task<ApiResponse<LoginResult>> Login(string email, string password)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace AppMeals.Services
                 catch (HttpRequestException httpEx)
                 {
                     _logger.LogError($"HTTP request error: {httpEx.Message}");
-                    return new ApiResponse<bool>
+                    return new ApiResponse<LoginResult>
                     {
                         ErrorMessage = "Failed to contact the server."
                     };
@@ -92,7 +92,7 @@ namespace AppMeals.Services
                 catch (Exception ex)
                 {
                     _logger.LogError($"Unexpected error during POST: {ex.Message}");
-                    return new ApiResponse<bool>
+                    return new ApiResponse<LoginResult>
                     {
                         ErrorMessage = "Unexpected error while sending request."
                     };
@@ -102,7 +102,7 @@ namespace AppMeals.Services
                 {
                     var error = await response.Content.ReadAsStringAsync();
                     _logger.LogError($"HTTP response error: {response.StatusCode}, Body: {error}");
-                    return new ApiResponse<bool>
+                    return new ApiResponse<LoginResult>
                     {
                         ErrorMessage = $"Authentication failed: {response.StatusCode}"
                     };
@@ -113,7 +113,7 @@ namespace AppMeals.Services
                 if (string.IsNullOrWhiteSpace(jsonResult))
                 {
                     _logger.LogError("Login response is empty.");
-                    return new ApiResponse<bool>
+                    return new ApiResponse<LoginResult>
                     {
                         ErrorMessage = "Empty server response."
                     };
@@ -121,16 +121,15 @@ namespace AppMeals.Services
 
                 _logger.LogInformation("Login response JSON: " + jsonResult);
 
-                Token? result;
+                LoginResult? result;
                 try
                 {
-
-                    result = JsonSerializer.Deserialize<Token>(jsonResult, _serializerOptions);
+                    result = JsonSerializer.Deserialize<LoginResult>(jsonResult, _serializerOptions);
                 }
                 catch (JsonException jsonEx)
                 {
                     _logger.LogError($"Error deserializing JSON: {jsonEx.Message}");
-                    return new ApiResponse<bool>
+                    return new ApiResponse<LoginResult>
                     {
                         ErrorMessage = "Failed to process server response."
                     };
@@ -139,32 +138,32 @@ namespace AppMeals.Services
                 if (result == null || string.IsNullOrWhiteSpace(result.AccessToken))
                 {
                     _logger.LogError("Invalid or null token received.");
-                    return new ApiResponse<bool>
+                    return new ApiResponse<LoginResult>
                     {
                         ErrorMessage = "Invalid token received from server."
                     };
                 }
 
-
-                // Save preferences
+                // Guarda as preferências aqui
                 Preferences.Set("accesstoken", result.AccessToken);
-                Preferences.Set("userid", (int)result.UserId!);
-                Preferences.Set("username", result.UserName);
+                Preferences.Set("userid", result.UserId ?? 0);
+                Preferences.Set("username", result.UserName ?? "");
+                Preferences.Set("email", result.Email ?? "");
+                Preferences.Set("contact", result.Contact ?? "");
 
                 _logger.LogInformation("Login successful.");
-                return new ApiResponse<bool> { Success = true, Data = true };
-
-
+                return new ApiResponse<LoginResult> { Success = true, Data = result };
             }
             catch (Exception ex)
             {
                 _logger.LogError($"General exception during login: {ex.Message}");
-                return new ApiResponse<bool>
+                return new ApiResponse<LoginResult>
                 {
                     ErrorMessage = "An unexpected error occurred during login."
                 };
             }
         }
+
 
 
         private async Task<HttpResponseMessage> PostRequest(string uri, HttpContent content)

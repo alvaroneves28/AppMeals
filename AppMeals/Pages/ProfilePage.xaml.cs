@@ -28,7 +28,6 @@ public partial class ProfilePage : ContentPage
 
         var (response, errorMessage) = await _apiService.GetUserProfileImage();
 
-        
         if (errorMessage is not null)
         {
             switch (errorMessage)
@@ -41,14 +40,14 @@ public partial class ProfilePage : ContentPage
                     }
                     break;
                 default:
-                    await DisplayAlert("Erro", errorMessage ?? "Could not get image.", "OK");
+                    await DisplayAlert("Erro", errorMessage ?? "Não foi possível obter a imagem.", "OK");
                     return defaultImage;
             }
         }
 
-        if (response?.ImageUrl is not null)
+        if (!string.IsNullOrWhiteSpace(response?.ImagePath))
         {
-            return response.ImagePath;
+            return ImageSource.FromUri(new Uri(response.ImagePath));
         }
 
         return defaultImage;
@@ -119,17 +118,23 @@ public partial class ProfilePage : ContentPage
 
     private void Account_Tapped(object sender, TappedEventArgs e)
     {
-
+        Navigation.PushAsync(new AccountPage(_apiService, _validator));
     }
 
     private void Questions_Tapped(object sender, TappedEventArgs e)
     {
-
+        Navigation.PushAsync(new FAQPage());
     }
 
     private void BtnLogout_Clicked(object sender, EventArgs e)
     {
+        Preferences.Remove("accesstoken");
+        Preferences.Remove("userid");
+        Preferences.Remove("username");
+        Preferences.Remove("email");
+        Preferences.Remove("contact");
 
+        Application.Current.MainPage = new LoginPage(_apiService, _validator);
     }
     private async Task DisplayLoginPage()
     {
