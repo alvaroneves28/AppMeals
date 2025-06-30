@@ -24,6 +24,8 @@ public partial class OrdersPage : ContentPage
 
     private async Task GetOrdersList()
     {
+        loadPedidosIndicator.IsRunning = true;
+        loadPedidosIndicator.IsVisible = true;
         try
         {
             var (orders, errorMessage) = await _apiService.GetOrdersByUser(Preferences.Get("userid", 0));
@@ -51,6 +53,11 @@ public partial class OrdersPage : ContentPage
         catch (Exception)
         {
             await DisplayAlert("Erro", "Ocorreu um erro ao obter os pedidos. Tente novamente mais tarde.", "OK");
+        }
+        finally
+        {
+            loadPedidosIndicator.IsRunning = false;
+            loadPedidosIndicator.IsVisible = false;
         }
     }
 

@@ -22,6 +22,9 @@ public partial class OrderDetailsPage : ContentPage
     {
         try
         {
+            loadIndicator.IsRunning = true;
+            loadIndicator.IsVisible = true;
+
             var (orderDetails, errorMessage) = await _apiService.GetOrderDetails(orderId);
 
             if (errorMessage == "Unauthorized" && !_loginPageDisplayed)
@@ -43,6 +46,12 @@ public partial class OrderDetailsPage : ContentPage
         catch (Exception)
         {
             await DisplayAlert("Erro", "Ocorreu um erro ao obter os detalhes. Tente novamente mais tarde.", "OK");
+        }
+        finally
+        {
+            //Esconder o indicador 
+            loadIndicator.IsRunning = false;
+            loadIndicator.IsVisible = false;    
         }
     }
     private async Task DisplayLoginPage()

@@ -9,10 +9,11 @@ public partial class FavoritesPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
-    private readonly FavoritesService _favoritesService = new FavoritesService();
+    private readonly FavoritesService _favoritesService;
     public FavoritesPage(ApiService apiService, IValidator validator)
     {
         InitializeComponent();
+        _favoritesService = ServiceFactory.CreateFavoritesService();
         _apiService = apiService;
         _validator = validator;
         
